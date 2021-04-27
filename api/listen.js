@@ -2,12 +2,7 @@ import getChallengeResponse from "./get-challenge-response";
 
 module.exports = async (req, res) => {
   const method = req.method.toLowerCase();
-  switch (method) {
-    case "get":
-      return sendChallengeResponse(req, res);
-    default:
-      return res.status(405).send("Method not implemented");
-  }
+  return sendChallengeResponse(req, res);
 };
 
 function sendChallengeResponse(req, res) {
