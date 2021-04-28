@@ -74,7 +74,7 @@ async function handleAccountActivity(req, res) {
     "@PickAtRandom is cooking. Chill. All of us will eat breakfast.",
     "Hmm.. Wahala for whoever isn't using @PickAtRandom.",
   ];
-  const respMsg = Math.floor(Math.random() * messages.length);
+  const respMsg = messages[Math.floor(Math.random() * messages.length)];
   console.log("responding with", respMsg);
   const requestConfig = {
     url: "https://api.twitter.com/1.1/direct_messages/events/new.json",
@@ -87,7 +87,7 @@ async function handleAccountActivity(req, res) {
             recipient_id: message.message_create.sender_id,
           },
           message_data: {
-            text: `${respMsg}!`,
+            text: `${respMsg}`,
           },
         },
       },
