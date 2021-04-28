@@ -17,7 +17,8 @@ module.exports = async (req, res) => {
     case "get":
       return sendChallengeResponse(req, res);
     case "post":
-      return await handleAccountActivity(req, res);
+      await handleAccountActivity(req, res);
+      return;
     default:
       res.status(405).send();
       break;
@@ -43,12 +44,13 @@ async function handleAccountActivity(req, res) {
 
   // Messages are wrapped in an array, so we'll extract the first element
   const [message] = req.body.direct_message_events;
-
+  console.log("message received", message);
   // We check that the message is valid
   if (
     typeof message === "undefined" ||
     typeof message.message_create === "undefined"
   ) {
+    console.log("message is invalid");
     res.end();
   }
 
@@ -60,7 +62,11 @@ async function handleAccountActivity(req, res) {
     res.end();
   }
 
-  if (message.message_create.sender_id !== process.env.PICKATRANDOM_USERID) {
+  if (
+    message.message_create.target.recipient_id !==
+    process.env.PICKATRANDOM_USERID
+  ) {
+    console.log("message is not for @PickAtRandom");
     res.end();
   }
   // Prepare and send the message reply
@@ -69,6 +75,7 @@ async function handleAccountActivity(req, res) {
     "Hmm.. Wahala for whoever isn't using @PickAtRandom.",
   ];
   const respMsg = Math.floor(Math.random() * messages.length);
+  console.log("responding with", respMsg);
   const requestConfig = {
     url: "https://api.twitter.com/1.1/direct_messages/events/new.json",
     oauth: oAuthConfig,
@@ -88,8 +95,10 @@ async function handleAccountActivity(req, res) {
   };
   try {
     await post(requestConfig);
+    console.log("message sent");
     res.end();
   } catch (error) {
+    console.error("message not sent");
     console.error(error);
     res.end();
   }
