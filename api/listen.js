@@ -17,7 +17,7 @@ module.exports = async (req, res) => {
     case "get":
       return sendChallengeResponse(req, res);
     case "post":
-      console.log('handling post')
+      console.log(typeof res.end);
       await handleAccountActivity(req, res);
       return;
     default:
@@ -40,7 +40,7 @@ async function handleAccountActivity(req, res) {
   console.log("account event payload", req.body);
   // We check that the message is a direct message
   if (!req.body.direct_message_events) {
-    res.end();
+    return;
   }
 
   // Messages are wrapped in an array, so we'll extract the first element
@@ -52,7 +52,7 @@ async function handleAccountActivity(req, res) {
     typeof message.message_create === "undefined"
   ) {
     console.log("message is invalid");
-    res.end();
+    return;
   }
 
   // We filter out message you send, to avoid an infinite loop
@@ -60,7 +60,7 @@ async function handleAccountActivity(req, res) {
     message.message_create.sender_id ===
     message.message_create.target.recipient_id
   ) {
-    res.end();
+    return;
   }
 
   if (
@@ -68,7 +68,7 @@ async function handleAccountActivity(req, res) {
     process.env.PICKATRANDOM_USERID
   ) {
     console.log("message is not for @PickAtRandom");
-    res.end();
+    return;
   }
   // Prepare and send the message reply
   const messages = [
@@ -97,10 +97,10 @@ async function handleAccountActivity(req, res) {
   try {
     await post(requestConfig);
     console.log("message sent");
-    res.end();
+    return;
   } catch (error) {
     console.error("message not sent");
     console.error(error);
-    res.end();
+    return;
   }
 }
