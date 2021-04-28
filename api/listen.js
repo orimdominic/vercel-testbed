@@ -1,14 +1,25 @@
 import getChallengeResponse from "./get-challenge-response";
+const util = require("util");
+const request = require("request");
+const get = util.promisify(request.get);
+const post = util.promisify(request.post);
+
+const oAuthConfig = {
+  token: process.env.TWITTER_TOKEN,
+  token_secret: process.env.TWITTER_TOKEN_SECRET,
+  consumer_key: process.env.TWITTER_CONSUMER_KEY,
+  consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
+};
 
 module.exports = async (req, res) => {
   const method = req.method.toLowerCase();
   switch (method) {
-    case 'get':
+    case "get":
       return sendChallengeResponse(req, res);
-    case "post" :
-      return handleAccountActivity(req, res)
+    case "post":
+      return await handleAccountActivity(req, res);
     default:
-      res.status(405).send()
+      res.status(405).send();
       break;
   }
 };
@@ -23,7 +34,63 @@ function sendChallengeResponse(req, res) {
   });
 }
 
-function handleAccountActivity(req, res) {
-  console.log("account event payload", req.body)
-  res.end()
+async function handleAccountActivity(req, res) {
+  console.log("account event payload", req.body);
+  // We check that the message is a direct message
+  if (!req.body.direct_message_events) {
+    res.end();
+  }
+
+  // Messages are wrapped in an array, so we'll extract the first element
+  const [message] = req.body.direct_message_events;
+
+  // We check that the message is valid
+  if (
+    typeof message === "undefined" ||
+    typeof message.message_create === "undefined"
+  ) {
+    res.end();
+  }
+
+  // We filter out message you send, to avoid an infinite loop
+  if (
+    message.message_create.sender_id ===
+    message.message_create.target.recipient_id
+  ) {
+    res.end();
+  }
+
+  if (message.message_create.sender_id !== process.env.PICKATRANDOM_USERID) {
+    res.end();
+  }
+  // Prepare and send the message reply
+  const messages = [
+    "@PickAtRandom is cooking. Chill. All of us will eat breakfast.",
+    "Hmm.. Wahala for whoever isn't using @PickAtRandom.",
+  ];
+  const respMsg = Math.floor(Math.random() * messages.length);
+  const requestConfig = {
+    url: "https://api.twitter.com/1.1/direct_messages/events/new.json",
+    oauth: oAuthConfig,
+    json: {
+      event: {
+        type: "message_create",
+        message_create: {
+          target: {
+            recipient_id: message.message_create.sender_id,
+          },
+          message_data: {
+            text: `${respMsg}!`,
+          },
+        },
+      },
+    },
+  };
+  try {
+    await post(requestConfig);
+    res.end();
+  } catch (error) {
+    console.error(error);
+    res.end();
+  }
 }
