@@ -4,6 +4,7 @@
   "main": "index.js",
   "license": "MIT",
   "dependencies": {
+    "node-twitter-api": "^1.8.0",
     "request": "^2.88.2"
   }
 }
