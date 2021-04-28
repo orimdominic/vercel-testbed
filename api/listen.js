@@ -17,6 +17,7 @@ module.exports = async (req, res) => {
     case "get":
       return sendChallengeResponse(req, res);
     case "post":
+      console.log('handling post')
       await handleAccountActivity(req, res);
       return;
     default:
