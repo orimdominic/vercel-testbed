@@ -19,8 +19,7 @@ module.exports = async function handleTweetCreateEvents(payload, res) {
         user_screen_name: tweet.user.screen_name,
         user_id_str: tweet.user.id_str,
         text: tweet.extended_tweet.full_text ? tweet.extended_tweet.full_text : tweet.text,
-        urls: tweet.entities.urls,
-        extended_tweet: tweet.extended_tweet
+        urls: tweet.entities.urls
       };
     });
   console.log(JSON.stringify(validMentions, null, 4));
