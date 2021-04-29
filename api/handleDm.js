@@ -10,7 +10,7 @@ const oAuthConfig = {
   consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
 };
 
-module.exports = async function handleDm(payload) {
+module.exports = async function handleDm(payload, res) {
   console.log("handle dm payload -", payload);
   // Messages are wrapped in an array, so we'll extract the first element
   const [message] = payload.direct_message_events;

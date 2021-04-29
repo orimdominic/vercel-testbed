@@ -28,7 +28,7 @@ function sendChallengeResponse(req, res) {
 async function handleAccountActivity(req, res) {
   // We check that the message is a direct message
   if(req.body.direct_message_events){
-   await handleDm(req.body)
+   await handleDm(req.body, res)
   }
   return res.status(200).send()
 }
