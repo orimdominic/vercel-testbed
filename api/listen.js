@@ -38,7 +38,7 @@ async function handleAccountActivity(req, res) {
     await handleDm(req.body, res);
   }
   if (req.body.tweet_create_events) {
-    await handleTweetCreateEvents(req, res);
+    await handleTweetCreateEvents(req.body, res);
   }
   return res.status(200).send();
 }
