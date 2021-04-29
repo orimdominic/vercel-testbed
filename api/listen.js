@@ -27,7 +27,7 @@ function sendChallengeResponse(req, res) {
 }
 
 async function handleAccountActivity(req, res) {
-  if(!res.body.for_user_id || res.body.for_user_id !== process.env.PICKATRANDOM_USERID){
+  if(!req.body.for_user_id || req.body.for_user_id !== process.env.PICKATRANDOM_USERID){
     return res.status(200).send()
   }
   // We check that the message is a direct message
