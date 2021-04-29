@@ -1,4 +1,4 @@
 module.exports = async function handleTweetCreateEvents(payload, res) {
-  console.log(payload);
+  console.log(JSON.stringify(payload, null, 4));
   return;
 }
