@@ -18,8 +18,9 @@ module.exports = async function handleTweetCreateEvents(payload, res) {
         in_reply_to_status_id: tweet.in_reply_to_status_id,
         user_screen_name: tweet.user.screen_name,
         user_id_str: tweet.user.id_str,
-        text: tweet.truncated ? tweet.extended_tweet.full_text : tweet.text,
-        entities: tweet.entities,
+        text: tweet.extended_tweet.full_text ? tweet.extended_tweet.full_text : tweet.text,
+        urls: tweet.entities.urls,
+        extended_tweet: tweet.extended_tweet
       };
     });
   console.log(JSON.stringify(validMentions, null, 4));
