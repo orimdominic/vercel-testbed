@@ -1,5 +1,5 @@
 module.exports = async function handleTweetCreateEvents(payload, res) {
-  const validMentions = payload.create_tweet_events
+  const validMentions = payload.tweet_create_events
     .filter((tweet) => {
       // ignore retweets, but accept quotes
       if (tweet.retweeted_status && !tweet.is_quote_status) {
