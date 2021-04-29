@@ -20,7 +20,7 @@ module.exports = async function handleDm(payload, res) {
     typeof message.message_create === "undefined"
   ) {
     console.log("message is invalid");
-    res.status(200).send()
+    res.status(200).send();
   }
 
   // We filter out message you send, to avoid an infinite loop
@@ -28,8 +28,8 @@ module.exports = async function handleDm(payload, res) {
     message.message_create.sender_id ===
     message.message_create.target.recipient_id
   ) {
-    console.log('message was sent by @PickAtRandom');
-    res.status(200).send()
+    console.log("message was sent by @PickAtRandom");
+    res.status(200).send();
   }
 
   if (
@@ -37,7 +37,7 @@ module.exports = async function handleDm(payload, res) {
     process.env.PICKATRANDOM_USERID
   ) {
     console.log("message is not for @PickAtRandom");
-    res.status(200).send()
+    res.status(200).send();
   }
   // Prepare and send the message reply
   const messages = [
@@ -66,10 +66,10 @@ module.exports = async function handleDm(payload, res) {
   try {
     await post(requestConfig);
     console.log("message sent");
-    return res.status(200).send()
+    return res.status(200).send();
   } catch (error) {
     console.error("message not sent");
     console.error(error);
-    return res.status(200).send()
+    return res.status(200).send();
   }
-}
+};

@@ -1,6 +1,6 @@
 import getChallengeResponse from "./get-challenge-response";
-import handleDm from "./handle-dm"
-import handleTweetCreateEvents from "./handle-tweet-create-events"
+import handleDm from "./handle-dm";
+import handleTweetCreateEvents from "./handle-tweet-create-events";
 
 module.exports = async (req, res) => {
   const method = req.method.toLowerCase();
@@ -27,15 +27,18 @@ function sendChallengeResponse(req, res) {
 }
 
 async function handleAccountActivity(req, res) {
-  if(!req.body.for_user_id || req.body.for_user_id !== process.env.PICKATRANDOM_USERID){
-    return res.status(200).send()
+  if (
+    !req.body.for_user_id ||
+    req.body.for_user_id !== process.env.PICKATRANDOM_USERID
+  ) {
+    return res.status(200).send();
   }
   // We check that the message is a direct message
-  if(req.body.direct_message_events){
-   await handleDm(req.body, res)
+  if (req.body.direct_message_events) {
+    await handleDm(req.body, res);
   }
-  if(req.body.tweet_create_events){
-    await handleTweetCreateEvents(req.body, res)
-   }
-  return res.status(200).send()
+  if (req.body.tweet_create_events) {
+    await handleTweetCreateEvents(req, res);
+  }
+  return res.status(200).send();
 }
