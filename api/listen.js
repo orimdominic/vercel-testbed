@@ -1,6 +1,6 @@
-import getChallengeResponse from "./get-challenge-response";
-import handleDm from "./handle-dm";
-import handleTweetCreateEvents from "./handle-tweet-create-events";
+import getChallengeResponse from "../get-challenge-response";
+import handleDm from "../handle-dm";
+import handleTweetCreateEvents from "../handle-tweet-create-events";
 
 module.exports = async (req, res) => {
   const method = req.method.toLowerCase();
