@@ -1,3 +1,5 @@
+const ParseCmdTextError = require("./ParseCmdTextError");
+
 module.exports = async function handleTweetCreateEvents(payload, res) {
   const realMentions = payload.tweet_create_events.filter(isRealMention);
   if (!realMentions.length) {
@@ -6,32 +8,35 @@ module.exports = async function handleTweetCreateEvents(payload, res) {
   const mentions = realMentions
     .map(setMentionObject)
     .map(setMentionCommandText)
-    .filter(({ cmdText }) => cmdText.length);
+    .filter(isValidCmdText);
   if (!mentions.length) {
     return res.status(200).send();
   }
-  const [cancelSelectionTweets, makeSelectionTweets] = [
-    mentions.filter(isCancellationTweet(true)),
-    mentions.filter(isCancellationTweet(false)),
+  const [cancelSelectionReqTweets, makeSelectionReqTweets] = [
+    mentions.filter(isCancellationTweet),
+    mentions.filter((m) => !isCancellationTweet(m)),
   ];
-  if (cancelSelectionTweets.length) {
-    for (const tweet of cancelSelectionTweets) {
+  if (cancelSelectionReqTweets.length) {
+    for (const tweet of cancelSelectionReqTweets) {
       try {
-        await cancleSelection(tweet);
+        await cancleSelectionReq(tweet);
       } catch (e) {
         console.error(`cancellation request for "${tweet.id}" failed`);
         console.error(JSON.stringify(e));
       }
     }
   }
-  if (makeSelectionTweets.length) {
-    for (const tweet of makeSelectionTweets) {
+  if (makeSelectionReqTweets.length) {
+    for (const tweet of makeSelectionReqTweets) {
       try {
-        const engagementCount = await handleEngagementCount(tweet);
-        if(!engagementCount) res.status(200).send()
+        const [count] = Promise.all([
+          await getEngagementCount(tweet),
+          await getEngagementType(tweet),
+        ]);
       } catch (e) {
-        console.error(`make selection request for "${tweet.id}" failed`);
         console.error(JSON.stringify(e));
+        console.error(`make selection request for "${tweet.id}" failed`);
+        await replyTweet(tweet.id, e.message);
       }
     }
   }
@@ -78,12 +83,15 @@ function setMentionCommandText(tweet) {
   };
 }
 
-function isCancellationTweet(isCancel) {
-  return ({ cmdText }) =>
-    isCancel ? cmdText.startsWith("cancel") : !cmdText.startsWith("cancel");
+function isValidCmdText({ cmdText }) {
+  return cmdText.length;
 }
 
-async function cancleSelection(tweet) {
+function isCancellationTweet({ cmdText }) {
+  return cmdText.startsWith("cancel");
+}
+
+async function cancleSelectionReq(tweet) {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
       console.log(`handled selection cancellation for "${tweet.id}"`);
@@ -92,21 +100,40 @@ async function cancleSelection(tweet) {
   });
 }
 
-async function getCount({ id, cmdText }) {
-  const [countStr] = cmdText.split(" ")[0];
-  const count = parseInt(countStr, 10);
-  if (Number.isNaN(count)) {
-    const msg = `😟 I wasn't able to find the number of engagements you want.
-    Can you try again with the format "@PickAtRandom N .."? N being the number of engagements.`;
-    await replyTweet(id, msg);
-    return;
-  }
-  if (count < 1) {
-    const msg = `Nice trick, but no one can randomly pick any number of engagements less than 1 😉`;
-    await replyTweet(id, msg);
-    return ;
-  }
-  return count;
+async function getEngagementCount({ cmdText }) {
+  return new Promise((resolve) => {
+    const [countStr] = cmdText.split(" ");
+    const count = parseInt(countStr, 10);
+    if (Number.isNaN(count)) {
+      const errMsg = `😟 I wasn't able to find the number of engagements you want.
+      Could you try again with the format "@PickAtRandom N .."? N being the number of engagements.`;
+      throw new ParseCmdTextError(msg);
+    }
+    if (count < 1) {
+      const errMsg = `Nice trick, but no one can randomly pick any number of engagements less than 1 😉`;
+      throw new ParseCmdTextError(msg);
+    }
+    resolve(count);
+  });
+}
+
+async function getEngagementType({ cmdText }) {
+  return new Promise((resolve) => {
+    const [_, engagementType] = cmdText.split(" ");
+    const errMsg = `Uh oh 😟! I couldn't decipher the engagement type you provided.
+    Could you try again with any of 'retweets'`;
+    if (engagementType.length < 2) {
+      throw new ParseCmdTextError(errMsg);
+    }
+    const sub = engagementType.substring(0, 3);
+    switch (sub) {
+      case "ret":
+        return retweets;
+      // TODO: When the algorithm for finding replies is developed, add it
+      default:
+        throw new ParseCmdTextError(errMsg);
+    }
+  });
 }
 
 async function replyTweet(id, msg) {
