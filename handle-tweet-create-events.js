@@ -42,11 +42,13 @@ module.exports = async function handleTweetCreateEvents(payload, res) {
         const [
           count,
           engagement,
-          { selectionDateStr, lastMentionOfADate },
+          selectionDateStr,
+          selectionTweetId,
         ] = Promise.all([
           await getEngagementCount(tweet.cmdText),
           await getEngagementType(tweet.cmdText),
-          await getDateParams(tweet),
+          await getSelectionDate(tweet),
+          await getSelectionTweetId(tweet),
         ]);
       } catch (e) {
         console.error(JSON.stringify(e));
@@ -155,7 +157,7 @@ async function getEngagementType(cmdText) {
   });
 }
 
-async function getDateParams({ cmdText, refDate }) {
+async function getSelectionDate({ cmdText, refDate }) {
   // this snippet of code runs on vibes and insha Allah. lol
   // converting human language to computer language is a feat!
   return new Promise((resolve) => {
@@ -172,12 +174,29 @@ async function getDateParams({ cmdText, refDate }) {
       throw new ParseCmdTextError(`😰 I couldn't figure out the date for selection from what you submitted.
       Could you please try again with a clearer selection date?`);
     }
-    let dates = dateTimeParser.parse(datePhrase, refDate, {
-      forwardDate: true,
-    });
-    lastMentionOfADate = dates[dates.length - 1].text;
-    resolve({ selectionDateStr, lastMentionOfADate });
+    resolve(selectionDateStr);
   });
+}
+
+async function getSelectionTweetId({ id, refTweetId, cmdText, urls }) {
+  // check if there is a url, return url id, else
+  // check if there is a refTweetId, return refTweetId, else
+  // return id
+  const twitterUrlMatcher = "for https://t.co/";
+  const hasTweetStatusUrlRef = cmdText.includes(twitterUrlMatcher);
+  if (hasTweetStatusUrlRef) {
+    const refStatusUrlSuffix = cmdText
+      .split(twitterUrlMatcher)[1]
+      .substring(0, 10);
+    let fullRefStatusUrl = urls.find(({ url }) =>
+      url.includes(refStatusUrlSuffix)
+    ).expanded_url;
+    fullRefStatusUrl = fullRefStatusUrl.includes("?")
+      ? fullRefStatusUrl.split("?")[0]
+      : fullRefStatusUrl;
+    resolve(fullRefStatusUrl.split("/status/")[1]);
+  }
+  refTweetId ? resolve(refTweetId) : resolve(id);
 }
 
 async function replyTweet(id, msg) {
