@@ -1,6 +1,22 @@
+/**
+ * @fileoverview
+ * Custom date-time parser functions to convert date and time
+ * statements in human language to understandable computer
+ * format, using chrono-node
+ *
+ * Borrows heavily from shalvah/RemindMeOfThisTweet timeparser.js
+ * at https://github.com/shalvah/RemindMeOfThisTweet/blob/master/src/timeparser.js
+ */
 const chrono = require("chrono-node");
 const customChronoParser = chrono.casual.clone();
 
+/**
+ * By default, when chrono is passed a string such as "in march" of
+ * a year, say, 2018, and the reference date is april 2018, chrono
+ * returns march of the same year as the result date, even when
+ * `forwardDate` is true
+ * This custom refiner corrects that
+ */
 const rollOverYearRefiner = {
   refine: (_, results) => {
     results.forEach(({ start, refDate }) => {
@@ -97,41 +113,4 @@ customChronoParser.refiners.push(rollOverYearRefiner);
 customChronoParser.refiners.push(rollOverDayRefiner);
 customChronoParser.refiners.push(combineDateAndTime);
 
-console.log("question results ------------");
-console.log(
-  "PARSE--------- ",
-  JSON.stringify(
-    customChronoParser.parse(
-      "in 22hrs (30 mins) JST",
-      new Date("Fri Apr 30 07:30:06 +0000 2021"),
-      {
-        forwardDate: true,
-        // timezones: "JST",
-      }
-    )
-  )
-);
-console.log(
-  "PARSEDATE--------- ",
-  JSON.stringify(
-    customChronoParser.parseDate(
-      "in 22hrs (30 mins) JST",
-      new Date("Fri Apr 30 07:30:06 +0000 2021"),
-      {
-        forwardDate: true,
-        // timezones: "JST",
-      }
-    )
-  )
-);
-const parseResults = customChronoParser.parse(
-  "in 22hrs (30 mins) JST",
-  new Date("Fri Apr 30 07:30:06 +0000 2021"),
-  {
-    forwardDate: true,
-    // timezones: "JST",
-  }
-);
-console.log(JSON.stringify(parseResults[parseResults.length - 1].text));
-
-// created_at": "Fri Apr 30 07:30:06 +0000 2021"
+module.exports = customChronoParser;

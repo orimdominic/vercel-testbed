@@ -1,4 +1,5 @@
 const ParseCmdTextError = require("./ParseCmdTextError");
+const dateTimeParser = require("./time-parser");
 
 module.exports = async function handleTweetCreateEvents(payload, res) {
   const realMentions = payload.tweet_create_events.filter(isRealMention);
@@ -12,6 +13,7 @@ module.exports = async function handleTweetCreateEvents(payload, res) {
   if (!mentions.length) {
     return res.status(200).send();
   }
+  // FIXME: What id there is a new format, say "@PickAtRandom issue: I did not get good selections?"
   const [cancelSelectionReqTweets, makeSelectionReqTweets] = [
     mentions.filter(isCancellationTweet),
     mentions.filter((m) => !isCancellationTweet(m)),
@@ -20,23 +22,40 @@ module.exports = async function handleTweetCreateEvents(payload, res) {
     for (const tweet of cancelSelectionReqTweets) {
       try {
         await cancleSelectionReq(tweet);
+        // TODO: Add cancellation message
+        await replyTweet(id, "");
       } catch (e) {
         console.error(`cancellation request for "${tweet.id}" failed`);
         console.error(JSON.stringify(e));
+        // TODO: Add cancellation message
+        await replyTweet(id, "");
       }
     }
   }
   if (makeSelectionReqTweets.length) {
     for (const tweet of makeSelectionReqTweets) {
       try {
-        const [count] = Promise.all([
-          await getEngagementCount(tweet),
-          await getEngagementType(tweet),
+        /*
+        using promises for this cos the design pattern helps catch
+        any of the errors in one place and responds adequately
+         */
+        const [
+          count,
+          engagement,
+          { selectionDateStr, lastMentionOfADate },
+        ] = Promise.all([
+          await getEngagementCount(tweet.cmdText),
+          await getEngagementType(tweet.cmdText),
+          await getDateParams(tweet),
         ]);
       } catch (e) {
         console.error(JSON.stringify(e));
         console.error(`make selection request for "${tweet.id}" failed`);
-        await replyTweet(tweet.id, e.message);
+        await replyTweet(
+          tweet.id,
+          `Hello @${tweet.authorName}
+          ${e.message}`
+        );
       }
     }
   }
@@ -100,10 +119,10 @@ async function cancleSelectionReq(tweet) {
   });
 }
 
-async function getEngagementCount({ cmdText }) {
+async function getEngagementCount(cmdText) {
   return new Promise((resolve) => {
     const [countStr] = cmdText.split(" ");
-    const count = parseInt(countStr, 10);
+    const count = parseInt(countStr.trim(), 10);
     if (Number.isNaN(count)) {
       const errMsg = `😟 I wasn't able to find the number of engagements you want.
       Could you try again with the format "@PickAtRandom N .."? N being the number of engagements.`;
@@ -117,7 +136,7 @@ async function getEngagementCount({ cmdText }) {
   });
 }
 
-async function getEngagementType({ cmdText }) {
+async function getEngagementType(cmdText) {
   return new Promise((resolve) => {
     const [_, engagementType] = cmdText.split(" ");
     const errMsg = `Uh oh 😟! I couldn't decipher the engagement type you provided.
@@ -125,21 +144,46 @@ async function getEngagementType({ cmdText }) {
     if (engagementType.length < 2) {
       throw new ParseCmdTextError(errMsg);
     }
-    const sub = engagementType.substring(0, 3);
+    const sub = engagementType.trim().substring(0, 3);
     switch (sub) {
       case "ret":
-        return retweets;
-      // TODO: When the algorithm for finding replies is developed, add it
+        resolve("retweets");
+      // FIXME: When the algorithm for finding replies is developed, include it
       default:
         throw new ParseCmdTextError(errMsg);
     }
   });
 }
 
+async function getDateParams({ cmdText, refDate }) {
+  // this snippet of code runs on vibes and insha Allah. lol
+  // converting human language to computer language is a feat!
+  return new Promise((resolve) => {
+    let [_, __, ...datePhrase] = cmdText.split(" ");
+    if (!datePhrase.length) {
+      throw new ParseCmdTextError(`😧 I couldn't find a date for making your random selection.
+      Could you please try again and include a selection date?`);
+    }
+    datePhrase = datePhrase.join(" ");
+    let selectionDateStr = dateTimeParser.parseDate(datePhrase, refDate, {
+      forwardDate: true,
+    }); // returns either a date string or null
+    if (!selectionDateStr) {
+      throw new ParseCmdTextError(`😰 I couldn't figure out the date for selection from what you submitted.
+      Could you please try again with a clearer selection date?`);
+    }
+    let dates = dateTimeParser.parse(datePhrase, refDate, {
+      forwardDate: true,
+    });
+    lastMentionOfADate = dates[dates.length - 1].text;
+    resolve({ selectionDateStr, lastMentionOfADate });
+  });
+}
+
 async function replyTweet(id, msg) {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     setTimeout(() => {
-      console.log(`replied to "${id}" with msg "${msg}"`);
+      console.log(`replied to tweet id "${id}" with msg "${msg}"`);
       resolve();
     }, 100);
   });
