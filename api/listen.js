@@ -19,9 +19,16 @@ module.exports = async (req, res) => {
       return sendChallengeResponse(req, res);
     case "post":
       const {data} = req.body
-      await cache.set(data.key, data.value)
-      cache.close()
-      return res.status(200).send("done")
+      console.log(data.key, data.value);
+      try{
+        await cache.set(data.key, data.value)
+        cache.close()
+        return res.status(200).send("done")
+      }catch(e){
+        console.error(e)
+        cache.close()
+        return res.status(500).send("done")
+      }
       // await handleAccountActivity(req, res);
       // return;
     default:

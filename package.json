@@ -11,5 +11,8 @@
     "request": "^2.88.2",
     "tedis": "^0.1.12",
     "twit": "^2.2.11"
+  },
+  "devDependencies": {
+    "vercel": "^22.0.1"
   }
 }
