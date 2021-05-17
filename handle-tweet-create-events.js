@@ -24,6 +24,7 @@ module.exports = async function handleTweetCreateEvents(payload, res) {
         await cancleSelectionReq(tweet);
         // TODO: Add cancellation message
         await replyTweet(id, "");
+        // TODO: Report failure metrics
       } catch (e) {
         console.error(`cancellation request for "${tweet.id}" failed`);
         console.error(JSON.stringify(e));
@@ -58,6 +59,7 @@ module.exports = async function handleTweetCreateEvents(payload, res) {
           `Hello @${tweet.authorName}
           ${e.message}`
         );
+        // TODO: Report failure metric
       }
     }
   }
@@ -172,7 +174,7 @@ async function getSelectionDate({ cmdText, refDate }) {
     }); // returns either a date string or null
     if (!selectionDateStr) {
       throw new ParseCmdTextError(`😰 I couldn't figure out the date for selection from what you submitted.
-      Could you please try again with a clearer selection date?`);
+      Could you please try again with a more specific selection date?`);
     }
     resolve(selectionDateStr);
   });

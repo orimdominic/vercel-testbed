@@ -1,6 +1,7 @@
 import getChallengeResponse from "../get-challenge-response";
 import handleDm from "../handle-dm";
 import handleTweetCreateEvents from "../handle-tweet-create-events";
+const {cache} = require("../cache")
 
 module.exports = async (req, res) => {
   const method = req.method.toLowerCase();
@@ -8,6 +9,7 @@ module.exports = async (req, res) => {
     case "get":
       return sendChallengeResponse(req, res);
     case "post":
+      await testRedis(req, res)
       await handleAccountActivity(req, res);
       return;
     default:
@@ -31,7 +33,7 @@ async function handleAccountActivity(req, res) {
     !req.body.for_user_id ||
     req.body.for_user_id !== process.env.PICKATRANDOM_USERID
   ) {
-    return res.status(200).send();
+    return;
   }
   // We check that the message is a direct message
   if (req.body.direct_message_events) {
@@ -41,4 +43,10 @@ async function handleAccountActivity(req, res) {
     await handleTweetCreateEvents(req.body, res);
   }
   return res.status(200).send();
+}
+
+async function testRedis(req, res) {
+  const {data} = req.body
+  await cache.set("hello", "world")
+  res.status(200).send('done')
 }

@@ -5,9 +5,11 @@
   "license": "MIT",
   "dependencies": {
     "chrono-node": "^2.2.6",
+    "dotenv": "^8.2.0",
     "moment": "^2.29.1",
     "node-twitter-api": "^1.8.0",
     "request": "^2.88.2",
+    "tedis": "^0.1.12",
     "twit": "^2.2.11"
   }
 }

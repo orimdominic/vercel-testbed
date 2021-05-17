@@ -108,7 +108,9 @@ console.log(
         forwardDate: true,
         // timezones: "JST",
       }
-    )
+    ),
+    null,
+    2
   )
 );
 console.log(
@@ -124,14 +126,14 @@ console.log(
     )
   )
 );
-const parseResults = customChronoParser.parse(
-  "in 22hrs (30 mins) JST",
-  new Date("Fri Apr 30 07:30:06 +0000 2021"),
-  {
-    forwardDate: true,
-    // timezones: "JST",
-  }
-);
-console.log(JSON.stringify(parseResults[parseResults.length - 1].text));
+// const parseResults = customChronoParser.parse(
+//   "in 22hrs (30 mins) JST",
+//   new Date("Fri Apr 30 07:30:06 +0000 2021"),
+//   {
+//     forwardDate: true,
+//     // timezones: "JST",
+//   }
+// );
+// console.log(JSON.stringify(parseResults[parseResults.length - 1].text));
 
 // created_at": "Fri Apr 30 07:30:06 +0000 2021"
