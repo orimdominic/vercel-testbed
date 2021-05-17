@@ -19,12 +19,13 @@ module.exports = async (req, res) => {
       return sendChallengeResponse(req, res);
     case "post":
       const {data} = req.body
-      console.log(data.key, data.value);
       try{
         await cache.set(data.key, data.value)
+        console.log("back from cache put");
         cache.close()
         return res.status(200).send("done")
       }catch(e){
+        console.error("error on cache.set")
         console.error(e)
         cache.close()
         return res.status(500).send("done")
