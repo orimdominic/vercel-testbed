@@ -6,18 +6,18 @@ const dotenv = require("dotenv");
 
 dotenv.config();
 
-const cache = new Tedis({
-  host: process.env.REDIS_HOST,
-  port: process.env.REDIS_PORT,
-  password: process.env.REDIS_PASSWORD,
-});
 
 module.exports = async (req, res) => {
   const method = req.method.toLowerCase();
   switch (method) {
     case "get":
       return sendChallengeResponse(req, res);
-    case "post":
+      case "post":
+      const cache = new Tedis({
+        host: process.env.REDIS_HOST,
+        port: process.env.REDIS_PORT,
+        password: process.env.REDIS_PASSWORD,
+      });
       const { data } = req.body;
       try {
         await cache.set(data.key, data.value);
