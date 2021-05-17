@@ -47,6 +47,6 @@ async function handleAccountActivity(req, res) {
 
 async function testRedis(req, res) {
   const {data} = req.body
-  await cache.set("hello", "world")
+  await cache.set(data.key, data.value)
   res.status(200).send('done')
 }
