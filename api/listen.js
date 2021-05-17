@@ -1,15 +1,15 @@
 import getChallengeResponse from "../get-challenge-response";
 import handleDm from "../handle-dm";
 import handleTweetCreateEvents from "../handle-tweet-create-events";
-const {Tedis} = require ("tedis")
-const dotenv = require("dotenv")
+const { Tedis } = require("tedis");
+const dotenv = require("dotenv");
 
-dotenv.config()
+dotenv.config();
 
 const cache = new Tedis({
   host: process.env.REDIS_HOST,
   port: process.env.REDIS_PORT,
-  password: process.env.REDIS_PASSWORD
+  password: process.env.REDIS_PASSWORD,
 });
 
 module.exports = async (req, res) => {
@@ -18,20 +18,20 @@ module.exports = async (req, res) => {
     case "get":
       return sendChallengeResponse(req, res);
     case "post":
-      const {data} = req.body
-      try{
-        await cache.set(data.key, data.value)
+      const { data } = req.body;
+      try {
+        await cache.set(data.key, data.value);
         console.log("back from cache put");
-        cache.close()
-        return res.status(200).send("done")
-      }catch(e){
-        console.error("error on cache.set")
-        console.error(e)
-        cache.close()
-        return res.status(500).send("done")
+        cache.close();
+        return res.status(200).send("done");
+      } catch (e) {
+        console.error("error on cache.set");
+        console.error(e);
+        cache.close();
+        return res.status(500).send("done");
       }
-      // await handleAccountActivity(req, res);
-      // return;
+    // await handleAccountActivity(req, res);
+    // return;
     default:
       res.status(405).send();
       break;
@@ -64,4 +64,3 @@ async function handleAccountActivity(req, res) {
   }
   return res.status(200).send();
 }
-
