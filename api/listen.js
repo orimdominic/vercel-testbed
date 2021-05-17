@@ -22,12 +22,12 @@ module.exports = async (req, res) => {
       try {
         await cache.set(data.key, data.value);
         console.log("back from cache put");
-        cache.close();
+        // cache.close();
         return res.status(200).send("done");
       } catch (e) {
         console.error("error on cache.set");
         console.error(e);
-        cache.close();
+        // cache.close();
         return res.status(500).send("done");
       }
     // await handleAccountActivity(req, res);
