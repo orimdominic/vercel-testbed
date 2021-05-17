@@ -20,6 +20,7 @@ module.exports = async (req, res) => {
     case "post":
       const {data} = req.body
       await cache.set(data.key, data.value)
+      cache.close()
       return res.status(200).send("done")
       // await handleAccountActivity(req, res);
       // return;
