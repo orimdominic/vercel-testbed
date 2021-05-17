@@ -1,7 +1,16 @@
 import getChallengeResponse from "../get-challenge-response";
 import handleDm from "../handle-dm";
 import handleTweetCreateEvents from "../handle-tweet-create-events";
-const {cache} = require("../cache")
+const {Tedis} = require ("tedis")
+const dotenv = require("dotenv")
+
+dotenv.config()
+
+const cache = new Tedis({
+  host: process.env.REDIS_HOST,
+  port: process.env.REDIS_PORT,
+  password: process.env.REDIS_PASSWORD
+});
 
 module.exports = async (req, res) => {
   const method = req.method.toLowerCase();
@@ -9,9 +18,11 @@ module.exports = async (req, res) => {
     case "get":
       return sendChallengeResponse(req, res);
     case "post":
-      await testRedis(req, res)
-      await handleAccountActivity(req, res);
-      return;
+      const {data} = req.body
+      await cache.set(data.key, data.value)
+      return res.status(200).send("done")
+      // await handleAccountActivity(req, res);
+      // return;
     default:
       res.status(405).send();
       break;
@@ -45,8 +56,3 @@ async function handleAccountActivity(req, res) {
   return res.status(200).send();
 }
 
-async function testRedis(req, res) {
-  const {data} = req.body
-  await cache.set(data.key, data.value)
-  res.status(200).send('done')
-}
