@@ -7,7 +7,7 @@ const dotenv = require("dotenv");
 dotenv.config();
 
 let cache = createNodeRedisClient({
-  port: process.env.REDIS_PORT,
+  port: parseInt(process.env.REDIS_PORT, 10),
   host: process.env.REDIS_HOST,
   password: process.env.REDIS_PASSWORD,
 });
