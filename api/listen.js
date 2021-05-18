@@ -1,23 +1,26 @@
 import getChallengeResponse from "../get-challenge-response";
 import handleDm from "../handle-dm";
 import handleTweetCreateEvents from "../handle-tweet-create-events";
-const {createNodeRedisClient} = require("handy-redis");
+const { createNodeRedisClient } = require("handy-redis");
 const dotenv = require("dotenv");
 
 dotenv.config();
 
-let cache = createNodeRedisClient({url: process.env.REDIS_URL})
-
+let cache = createNodeRedisClient({
+  port: process.env.REDIS_PORT,
+  host: process.env.REDIS_HOST,
+  password: process.env.REDIS_PASSWORD,
+});
 
 module.exports = async (req, res) => {
   const method = req.method.toLowerCase();
   switch (method) {
     case "get":
       return sendChallengeResponse(req, res);
-      case "post":
+    case "post":
       const { data } = req.body;
       try {
-        await cache.set(data.key, data.value)
+        await cache.set(data.key, data.value);
         console.log("back from cache put");
         // cache.close();
         return res.status(200).send("done");
