@@ -18,7 +18,7 @@ module.exports = async (req, res) => {
     case "post":
       const { data } = req.body;
       try {
-        await cache.set(data.key, data.value);
+        await cache.set(data.key, JSON.stringify(data.value));
         console.log("back from cache put");
         // cache.close();
         return res.status(200).send("done");
