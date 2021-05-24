@@ -1,6 +1,7 @@
+const {allowCors}  = require("../allow-cors")
 const getProfiles = require("../get-profiles.js")
 
-module.exports = async (req, res) => {
+const profiles = async (req, res) => {
   const method = req.method.toLowerCase();
   switch (method) {
     case "get":
@@ -17,3 +18,5 @@ module.exports = async (req, res) => {
       break;
   }
 };
+
+module.exports = allowCors(profiles)
