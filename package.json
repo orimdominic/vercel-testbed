@@ -3,9 +3,13 @@
   "version": "1.0.0",
   "main": "index.js",
   "license": "MIT",
+  "scripts": {
+    "vercel-local": "vercel dev"
+  },
   "dependencies": {
     "chrono-node": "^2.2.6",
     "dotenv": "^8.2.0",
+    "faker": "^5.5.3",
     "handy-redis": "^2.2.1",
     "moment": "^2.29.1",
     "node-twitter-api": "^1.8.0",
